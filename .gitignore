@@ -1,0 +1,30 @@
+# 构建产物
+entry/build/
+build/
+.hvigor/
+.hvigor-cache/
+oh_modules/
+node_modules/
+
+# IDE
+.idea/
+*.iml
+.local/
+
+# 签名与证书（不要上传）
+*.p12
+*.cer
+*.crt
+*.key
+*.p7b
+signature/
+
+# 日志与临时文件
+*.log
+proxy.err
+proxy.log
+tunnel*.log
+
+# 系统
+.DS_Store
+Thumbs.db

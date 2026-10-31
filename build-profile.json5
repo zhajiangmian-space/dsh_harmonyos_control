@@ -1,0 +1,50 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\yipan\\.ohos\\config\\default_DshRemoteHOS_xA8pIyRfMsNNwzutkugvDZ3LjqTVhXxnGXYyzUpWSuI=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "000000191D825A5AE749CE43BE1A10391D0B7B61C0F8E743D4E298349A50AD78995D7F1CCC1E780BF0",
+          "profile": "C:\\Users\\yipan\\.ohos\\config\\default_DshRemoteHOS_xA8pIyRfMsNNwzutkugvDZ3LjqTVhXxnGXYyzUpWSuI=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\yipan\\.ohos\\config\\default_DshRemoteHOS_xA8pIyRfMsNNwzutkugvDZ3LjqTVhXxnGXYyzUpWSuI=.p12",
+          "storePassword": "0000001959D8A39EFDAA65203F182B51FC20F2684F1F625801DC23E4A79AB565B540816BFF3EB7E3D7"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "compatibleSdkVersion": "5.0.0(12)",
+        "runtimeOS": "HarmonyOS",
+        "targetSdkVersion": "26.0.0"
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

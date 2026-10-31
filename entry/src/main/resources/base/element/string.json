@@ -1,0 +1,12 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "DSH 手机远程控制模块"
+    },
+    {
+      "name": "ability_desc",
+      "value": "DSH 手机远程控制"
+    }
+  ]
+}
