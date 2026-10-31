@@ -50,41 +50,59 @@ struct Index {
     const g = AppGlobals.get();
     this.configured = g.configured;
     if (g.configured && this.groups.length === 0 && !this.loading) {
+      await this.loadWorkspaceData();
       await this.refresh();
     }
   }
 
-  /** 通过 workspace/follow 流拿工作区列表和归档/置顶数据 */
+  /** 通过 workspace/follow 流拿工作区列表和归档/置顶数据；等 baseline 到达（或超时）再返回 */
   async loadWorkspaceData(): Promise<void> {
     const g = AppGlobals.get();
     if (!g.configured) {
       return;
     }
-    try {
-      await g.ensureStream(() => {
-      });
-      const listener: StreamListener = {
-        onFrame: (frame: StreamFrame) => {
-          if (frame.type === 'item' && frame.value !== undefined) {
-            const v = frame.value as Record<string, Object>;
-            if (String(v['type'] ?? '') === 'baseline') {
-              this.applyWorkspaceBaseline(v);
-              if (this.wsStreamId !== '') {
-                g.stream.closeStream(this.wsStreamId);
-                this.wsStreamId = '';
-              }
-            }
-          }
-        },
-        onError: () => {
-        },
+    return new Promise<void>((resolve: () => void) => {
+      let settled = false;
+      const finish = (): void => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        if (this.wsStreamId !== '') {
+          g.stream.closeStream(this.wsStreamId);
+          this.wsStreamId = '';
+        }
+        resolve();
       };
-      const emptyArgs: Record<string, Object> = {};
-      const payload: Record<string, Object> = { 'args': emptyArgs };
-      this.wsStreamId = g.stream.openStream('workspace/follow', payload, listener);
-    } catch (e) {
-      // 工作区数据拿不到不影响会话列表
-    }
+      // 超时保护：5 秒内没拿到 baseline 也继续（不影响会话列表）
+      setTimeout(finish, 5000);
+      try {
+        g.ensureStream(() => {
+        }).then(() => {
+          const listener: StreamListener = {
+            onFrame: (frame: StreamFrame) => {
+              if (frame.type === 'item' && frame.value !== undefined) {
+                const v = frame.value as Record<string, Object>;
+                if (String(v['type'] ?? '') === 'baseline') {
+                  this.applyWorkspaceBaseline(v);
+                  finish();
+                }
+              }
+            },
+            onError: () => {
+              finish();
+            },
+          };
+          const emptyArgs: Record<string, Object> = {};
+          const payload: Record<string, Object> = { 'args': emptyArgs };
+          this.wsStreamId = g.stream.openStream('workspace/follow', payload, listener);
+        }).catch(() => {
+          finish();
+        });
+      } catch (e) {
+        finish();
+      }
+    });
   }
 
   applyWorkspaceBaseline(v: Record<string, Object>): void {

@@ -99,6 +99,23 @@ function isRuntimeContext(text: string): boolean {
   return false;
 }
 
+/** 清理用户消息里 DSH 注入的提示模板：
+ * 去掉 engram 记忆块，提取 <current_user_request> 标签里的真实内容。 */
+function cleanUserText(text: string): string {
+  let t = text;
+  // 去掉 engram 记忆块
+  t = t.replace(/<engram_memory_context>[\s\S]*?<\/engram_memory_context>/g, '');
+  // 提取 current_user_request 内容
+  const m = t.match(/<current_user_request>([\s\S]*?)<\/current_user_request>/);
+  if (m !== null && m.length > 1) {
+    t = m[1];
+  }
+  // 去残留标签
+  t = t.replace(/<\/?current_user_request>/g, '');
+  t = t.replace(/<\/?engram_memory_context>/g, '');
+  return t.trim();
+}
+
 /** 从事件 data 提取文本：user 用 data.content，assistant 用 data.message.content。
  * 思考内容不展示（与电脑端一致），工具调用显示成简洁的一行。 */
 function extractText(data: Record<string, Object>): string {
@@ -168,7 +185,9 @@ function applyToArray(msgs: ChatMsg[], event: Record<string, Object>): ChatMsg[]
   const data = (event['data'] ?? {}) as Record<string, Object>;
   const seq = Number(event['seq'] ?? 0);
   if (type === 'user/message') {
-    const text = extractText(data);
+    let text = extractText(data);
+    // 清理 DSH 注入的提示模板（engram 记忆块 / current_user_request 标签）
+    text = cleanUserText(text);
     const images = extractImages(data);
     if (text === '' && images.length === 0) {
       return msgs;
